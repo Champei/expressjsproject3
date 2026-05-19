@@ -1,0 +1,21 @@
+{
+  "name": "websocketproject",
+  "version": "1.0.0",
+  "description": "full stack",
+  "license": "ISC",
+  "author": "chaitanya",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "yo",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "uuid": "^14.0.0",
+    "ws": "^8.20.1"
+  }
+}

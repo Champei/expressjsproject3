@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 36px 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .card h1 { text-align: center; margin-bottom: 28px; color: #1a1a2e; font-size: 24px; }
+    .card h2 { margin-bottom: 6px; color: #1a1a2e; }
+    .card .subtitle { color: #888; font-size: 14px; margin-bottom: 24px; }
+
+    .tabs { display: flex; margin-bottom: 24px; border-bottom: 2px solid #e8e8e8; }
+    .tab {
+      flex: 1; padding: 10px; text-align: center; cursor: pointer;
+      color: #888; font-weight: 500; font-size: 15px; transition: color 0.2s;
+    }
+    .tab.active { color: #4f46e5; border-bottom: 2px solid #4f46e5; margin-bottom: -2px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; color: #555; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
+    .form-group input {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #ddd;
+      border-radius: 8px; font-size: 15px; outline: none; transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: #4f46e5; }
+
+    .btn {
+      width: 100%; padding: 12px; background: #4f46e5; color: white;
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s; margin-top: 4px;
+    }
+    .btn:hover { background: #4338ca; }
+
+    .btn-ghost {
+      background: transparent; color: #dc2626; border: 1.5px solid #dc2626;
+      padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-ghost:hover { background: #fef2f2; }
+
+    .alert {
+      padding: 10px 14px; border-radius: 8px; margin-top: 14px;
+      font-size: 14px; text-align: center;
+    }
+    .alert.error { background: #fef2f2; color: #dc2626; }
+    .alert.success { background: #f0fdf4; color: #16a34a; }
+
+    .user-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #f5f3ff; border-radius: 8px; padding: 12px 14px; margin-bottom: 20px;
+    }
+    .user-bar span { color: #4f46e5; font-weight: 600; font-size: 14px; }
+
+    body.chat-mode {
+      align-items: stretch;
+      padding: 0;
+    }
+
+    #chat-screen {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .chat-header {
+      background: #4f46e5; color: white;
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .chat-header .title { font-size: 17px; font-weight: 700; }
+    .chat-header .sub { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+    .room-pill {
+      background: rgba(255,255,255,0.18); padding: 5px 14px;
+      border-radius: 20px; font-size: 13px; font-weight: 600;
+    }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .status-bar {
+      padding: 6px 20px; font-size: 12px; text-align: center; flex-shrink: 0;
+    }
+    .status-bar.connected { background: #f0fdf4; color: #16a34a; }
+    .status-bar.disconnected { background: #fef2f2; color: #dc2626; }
+
+    #chat-messages {
+      flex: 1; overflow-y: auto; padding: 20px;
+      display: flex; flex-direction: column; gap: 8px;
+      background: #f0f2f5;
+    }
+
+    .bubble {
+      max-width: 68%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45;
+    }
+    .bubble.mine {
+      align-self: flex-end;
+      background: #4f46e5; color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .bubble.theirs {
+      align-self: flex-start;
+      background: white; color: #1a1a2e;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .bubble.system {
+      align-self: center; background: rgba(0,0,0,0.06);
+      color: #777; font-size: 12px; padding: 4px 14px; border-radius: 20px;
+    }
+
+    .bubble .sender { font-size: 11px; font-weight: 700; margin-bottom: 3px; opacity: 0.75; }
+    .bubble .time { font-size: 10px; margin-top: 4px; opacity: 0.55; text-align: right; }
+
+    .chat-input-bar {
+      padding: 14px 16px; background: white;
+      border-top: 1px solid #e8e8e8;
+      display: flex; gap: 10px; flex-shrink: 0;
+    }
+    .chat-input-bar input {
+      flex: 1; padding: 11px 16px; border: 1.5px solid #ddd;
+      border-radius: 24px; font-size: 15px; outline: none; transition: border-color 0.2s;
+    }
+    .chat-input-bar input:focus { border-color: #4f46e5; }
+    .btn-send {
+      padding: 11px 22px; background: #4f46e5; color: white;
+      border: none; border-radius: 24px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s; white-space: nowrap;
+    }
+    .btn-send:hover { background: #4338ca; }
+  </style>
+</head>
+<body>
+
+  <div id="auth-screen" style="display:none; width:100%; max-width:420px;">
+    <div class="card">
+      <h1>💬 Chat App</h1>
+
+      <div class="tabs">
+        <div class="tab active" id="tab-login" onclick="switchTab('login')">Login</div>
+        <div class="tab" id="tab-register" onclick="switchTab('register')">Register</div>
+      </div>
+
+      <div id="form-login">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') handleLogin()" />
+        </div>
+        <button class="btn" onclick="handleLogin()">Login</button>
+      </div>
+
+      <div id="form-register" style="display:none">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="reg-name" placeholder="Your full name" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') handleRegister()" />
+        </div>
+        <button class="btn" onclick="handleRegister()">Create Account</button>
+      </div>
+
+      <div id="auth-alert"></div>
+    </div>
+  </div>
+
+  <div id="lobby-screen" style="display:none; width:100%; max-width:420px;">
+    <div class="card">
+      <h2>Welcome back!</h2>
+      <p class="subtitle">Enter a room number and start chatting in real-time.</p>
+
+      <div class="user-bar">
+        <span id="lobby-user">User</span>
+        <button class="btn-ghost" onclick="handleLogout()">Logout</button>
+      </div>
+
+      <div class="form-group">
+        <label>Room Number</label>
+        <input type="number" id="room-input" placeholder="e.g. 42" min="1"
+          onkeydown="if(event.key==='Enter') joinRoom()" />
+      </div>
+      <button class="btn" onclick="joinRoom()">Join Room →</button>
+    </div>
+  </div>
+
+  <div id="chat-screen" style="display:none">
+    <div class="chat-header">
+      <div>
+        <div class="title">💬 Chat Room</div>
+        <div class="sub" id="chat-user-label"></div>
+      </div>
+      <div class="header-right">
+        <div class="room-pill" id="room-pill">Room #?</div>
+        <button class="btn-ghost" style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4)"
+          onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="status-bar disconnected" id="status-bar">Connecting...</div>
+
+    <div id="chat-messages"></div>
+
+    <div class="chat-input-bar">
+      <input type="text" id="message-input" placeholder="Type a message and press Enter…"
+        onkeydown="if(event.key==='Enter') sendMessage()" />
+      <button class="btn-send" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+
+    let currentUser = null;   // { id, name, email }
+    let roomId = null;        // string — the active room number
+    let ws = null;            // WebSocket instance
+
+    async function init() {
+      const chatMatch = window.location.pathname.match(/^\/chat\/(\d+)$/);
+
+      if (chatMatch) {
+        // User landed on /chat/42 — verify they're logged in
+        roomId = chatMatch[1];
+        const user = await fetchMe();
+        if (user) {
+          currentUser = user;
+          showChat();
+        } else {
+          // Not logged in — send them to auth
+          window.location.replace('/');
+        }
+      } else {
+        // Root or any other path — show auth or lobby
+        const user = await fetchMe();
+        if (user) {
+          currentUser = user;
+          showLobby();
+        } else {
+          showAuth();
+        }
+      }
+    }
+
+    // AUTH API CALLS
+
+    async function fetchMe() {
+      try {
+        const res = await fetch('/auth/me');
+        if (res.ok) return await res.json();
+        return null;
+      } catch { return null; }
+    }
+
+    async function handleLogin() {
+      const email    = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      const res  = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        currentUser = data.user;
+        showAlert('auth-alert', 'Login successful! Loading lobby…', 'success');
+        setTimeout(showLobby, 600);
+      } else {
+        showAlert('auth-alert', data.message, 'error');
+      }
+    }
+
+    async function handleRegister() {
+      const name     = document.getElementById('reg-name').value.trim();
+      const email    = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      const res  = await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showAlert('auth-alert', data.message, 'success');
+        setTimeout(() => switchTab('login'), 900);
+      } else {
+        showAlert('auth-alert', data.message, 'error');
+      }
+    }
+
+    async function handleLogout() {
+      if (ws) { ws.close(); ws = null; }
+      await fetch('/auth/logout', { method: 'POST' });
+      currentUser = null;
+      window.location.replace('/');
+    }
+
+    function joinRoom() {
+      const val = document.getElementById('room-input').value.trim();
+      if (!val || isNaN(val) || Number(val) < 1) {
+        return alert('Please enter a valid room number (a positive integer).');
+      }
+      window.location.href = `/chat/${val}`;
+    }
+
+    // WEBSOCKET
+
+    function connectWebSocket() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}`);
+
+      ws.onopen = () => {
+        setStatus(true);
+        ws.send(JSON.stringify({ type: 'join', roomId }));
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+
+        if (msg.type === 'room_info') {
+          document.getElementById('room-pill').textContent =
+            `Room #${roomId} · ${msg.userCount} online`;
+
+        } else if (msg.type === 'system') {
+          appendBubble('system', null, msg.message, msg.timestamp);
+
+        } else if (msg.type === 'message') {
+          const mine = msg.fromEmail === currentUser.email;
+          appendBubble(mine ? 'mine' : 'theirs', msg.from, msg.message, msg.timestamp);
+
+        } else if (msg.type === 'error') {
+          alert(msg.message);
+        }
+      };
+
+      ws.onclose = () => setStatus(false);
+      ws.onerror = () => setStatus(false);
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('message-input');
+      const text  = input.value.trim();
+      if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify({ type: 'message', message: text }));
+      input.value = '';
+    }
+
+    function showAuth() {
+      document.getElementById('auth-screen').style.display  = 'flex';
+      document.getElementById('lobby-screen').style.display = 'none';
+      document.getElementById('chat-screen').style.display  = 'none';
+    }
+
+    function showLobby() {
+      document.getElementById('auth-screen').style.display  = 'none';
+      document.getElementById('lobby-screen').style.display = 'flex';
+      document.getElementById('chat-screen').style.display  = 'none';
+      document.getElementById('lobby-user').textContent     = currentUser.name || currentUser.email;
+      window.history.replaceState({}, '', '/');
+    }
+
+    function showChat() {
+      document.body.classList.add('chat-mode');
+      document.getElementById('auth-screen').style.display  = 'none';
+      document.getElementById('lobby-screen').style.display = 'none';
+      document.getElementById('chat-screen').style.display  = 'flex';
+      document.getElementById('room-pill').textContent      = `Room #${roomId}`;
+      document.getElementById('chat-user-label').textContent = currentUser.email;
+      connectWebSocket();
+    }
+
+    function appendBubble(type, sender, text, timestamp) {
+      const container = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = `bubble ${type}`;
+
+      if (type === 'system') {
+        div.textContent = text;
+      } else {
+        const time = timestamp
+          ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : '';
+        div.innerHTML =
+          (type === 'theirs' ? `<div class="sender">${escHtml(sender)}</div>` : '') +
+          `<div>${escHtml(text)}</div>` +
+          `<div class="time">${time}</div>`;
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function setStatus(connected) {
+      const el = document.getElementById('status-bar');
+      el.className    = `status-bar ${connected ? 'connected' : 'disconnected'}`;
+      el.textContent  = connected
+        ? `Connected — messages are delivered in real-time`
+        : `Disconnected — refresh the page to reconnect`;
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+      document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none';
+      document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('auth-alert').innerHTML = '';
+    }
+
+    function showAlert(id, message, type) {
+      document.getElementById(id).innerHTML =
+        `<div class="alert ${type}">${escHtml(message)}</div>`;
+    }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

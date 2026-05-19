@@ -1,0 +1,20 @@
+[
+  {
+    "id": "ccc6d4dc-d12b-41f7-863b-2f8b2678551e",
+    "name": "Nikshap Jain",
+    "email": "njain@gmail.com",
+    "password": "$2b$10$rSALp2YbE2zsLaHW5sB2W.t5wvc5ve1xuY2sSvlEhbHz1t9assKy."
+  },
+  {
+    "id": "e1fc0808-a2ff-4a52-9259-5ccb1ca4f819",
+    "name": "Ankit Thakur",
+    "email": "athakur@gmail.com",
+    "password": "$2b$10$WTzyYo1gz7ZD0hvEkkTsve7WW5WU.5.JwEDXqM/uk5ZgYXzBDAbnm"
+  },
+  {
+    "id": "c8e1d56b-1318-43f3-a2e2-3496469caf9d",
+    "name": "Chaitanya",
+    "email": "chaitanya3911@gmail.com",
+    "password": "$2b$10$SPLbP8UPCuRVqlHpPTpgwOJ7xuVRETIjoHrxFl0SOk9LFyowYZ0FG"
+  }
+]
